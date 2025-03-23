@@ -18,3 +18,4 @@ As today we will learn Request and Response and
 So lets get started :)
 
 Now we will start with "class based views sets"
+Thank you :) byee
