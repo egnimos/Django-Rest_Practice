@@ -1,7 +1,7 @@
-#hello guys 
+# hello guys 
 
-##Today we will learn how to use Request and Responses and Class based view
-###so lets get started :)
+## Today we will learn how to use Request and Responses and Class based view
+### so lets get started :)
 ### You can find this code on github link you can check the description box
 ### please like and subscribe my channel, in future we will be adding the valuable content 
 ### we are starting to add all the django course from basic and advance along with the python tutorials

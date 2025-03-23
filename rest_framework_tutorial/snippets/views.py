@@ -3,11 +3,136 @@ from django.http import HttpResponse, JsonResponse
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 from rest_framework.request import Request
-from rest_framework import status
+from rest_framework import status, generics, mixins
 from .models import Snippet
+from rest_framework.views import APIView
 from .serializers import SnippetMSerializer
 
 # Create your views here.
+
+# Let's write some generics with class based views
+class GSnippetListView(generics.ListCreateAPIView):
+    queryset = Snippet.objects.all()
+    serializer_class = SnippetMSerializer
+
+class GSnippetDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Snippet.objects.all()
+    serializer_class = SnippetMSerializer
+
+# Lets write some mixin and generics with class based views to even reduce the
+# code size
+class MSnippetListView(generics.GenericAPIView, mixins.ListModelMixin, mixins.CreateModelMixin):
+    queryset = Snippet.objects.all()
+    serializer_class = SnippetMSerializer
+
+    def get(self, request, *args, **kargs):
+        return self.list(request=request, *args, **kargs)
+
+    def post(self, request, *args, **kargs):
+        return self.create(request=request, *args, **kargs)
+
+class MSnippetDetailView(generics.GenericAPIView, 
+                         mixins.RetrieveModelMixin, 
+                         mixins.DestroyModelMixin, 
+                         mixins.UpdateModelMixin):
+    queryset = Snippet.objects.all()
+    serializer_class = SnippetMSerializer
+    
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request=request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request=request, *args, **kwargs)
+
+    def patch(self, request, *args, **kwargs):
+        return self.partial_update(request=request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request=request, *args, **kwargs)
+
+
+# LETS write some class based views
+class SnippetListView(APIView):
+    """
+    List all the  snippets or create a new snippets
+    """
+
+    def get(self, request, format=None):
+        # get the list of snippet instances from database
+        snippet_list = Snippet.objects.all()
+        # serialize the list of snippet instances into python data types
+        serialize_snippet = SnippetMSerializer(snippet_list, many=True)
+        # generate response
+        return Response(serialize_snippet.data)
+    
+    def post(self, request, format=None):
+        # deserialize the request
+        deserialize_data = SnippetMSerializer(data=request.data)
+        # check the validitiy of deserialize data
+        if deserialize_data.is_valid():
+            deserialize_data.save()
+        # save the data if it is valid
+            return Response(deserialize_data.data, status=status.HTTP_201_CREATED)
+        
+        # or return error response if it is not valid
+        return Response(deserialize_data.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class SnippetDetailView(APIView):
+    """
+    Fetch, Delete, PUT and PATCH the Snippets data
+    """
+
+    def get(self, request, pk, format=None):
+        try:
+            # get the snippets data from the data base
+            snippet_data = Snippet.objects.get(pk=pk) # pk => primary key
+            # serialize the data 
+            serialize_data = SnippetMSerializer(snippet_data)
+            return Response(serialize_data.data)
+        
+        except Snippet.DoesNotExist:
+            return Response("snippet not found", status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response(f"internal server error {str(e)}", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    def _updateSnippet(self, request, pk, partial=False):
+        try:
+            # get the snippets data from the data base
+            snippet_data = Snippet.objects.get(pk=pk) # pk => primary key
+            # deserialize the data with request data
+            deserialize_data = SnippetMSerializer(snippet_data, data=request.data, partial=partial)
+            # check for validity
+            if deserialize_data.is_valid():
+                deserialize_data.save()
+            # save it if it is valid
+                return Response(deserialize_data.data)
+            
+            return Response(deserialize_data.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        except Snippet.DoesNotExist:
+            return Response("snippet not found", status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response(f"internal server error {str(e)}", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+    def put(self, request, pk, format=None):
+        return self._updateSnippet(request=request, pk=pk)
+
+
+    def patch(self, request, pk, format=None):
+        return self._updateSnippet(request=request, pk=pk, partial=True)
+
+    def delete(self, request, pk, format=None):
+        try:
+            snippet_data = Snippet.objects.get(pk=pk)
+            snippet_data.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Snippet.DoesNotExist:
+            return Response("snippet not found", status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response(f"internal server error {str(e)}", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 
 # Allowed Http Methods for this view function
 @api_view(["GET", "POST"])
@@ -84,3 +209,5 @@ def snippet_detail(request: Request, pk, format=None):
         return Response(status=status.HTTP_204_NO_CONTENT)
     
     # return Response("Invalid VERB", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
