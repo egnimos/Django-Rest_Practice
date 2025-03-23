@@ -71,6 +71,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'rest_framework_tutorial.wsgi.application'
 
+# ASGI_APPLICATION = 'rest_framework_tutorial.asgi.application'
+
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
