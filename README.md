@@ -19,3 +19,5 @@ So lets get started :)
 
 Now we will start with "class based views sets"
 Thank you :) byee
+
+to run ASGI use "daphne rest_framework_tutorial.asgi:application" command

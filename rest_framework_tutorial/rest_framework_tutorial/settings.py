@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'snippets',
+    "daphne",
 ]
 
 MIDDLEWARE = [
@@ -71,7 +72,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'rest_framework_tutorial.wsgi.application'
 
-# ASGI_APPLICATION = 'rest_framework_tutorial.asgi.application'
+ASGI_APPLICATION = 'rest_framework_tutorial.asgi.application'
 
 
 # Database
